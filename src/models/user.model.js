@@ -53,7 +53,7 @@ const userSchema =new Schema({
 userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next();
     this.password= await bcrypt.hash(this.password,10)
-    next
+    next()
 
 })
 
@@ -71,7 +71,7 @@ userSchema.methods.generateAccessToken = function () {
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expireIn:process.env.ACCESS_TOKEN_EXPIRY
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
@@ -81,7 +81,7 @@ userSchema.methods.generateRefreshToken = function () {
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expireIn:process.env.REFRESH_TOKEN_EXPIRY
+            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
         }
     )
 }

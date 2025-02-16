@@ -6,7 +6,7 @@ import { apiResponse } from "../utils/apiResponse.js"
 import jwt from 'jsonwebtoken'
 import mongoose from "mongoose"
 
-
+// successfully working condition
 const generateAccessandRefreshToken = async (userId) => {
     try {
 
@@ -23,7 +23,7 @@ const generateAccessandRefreshToken = async (userId) => {
     }
 }
 
-
+// successfully  working condition
 const registerUser =asyncHandler(async (req, res) => {
     //  res.status(200).json({
     //     message:"Suyog Dighe"
@@ -100,6 +100,7 @@ const registerUser =asyncHandler(async (req, res) => {
 
 })
 
+// successfully  working condition
 const loginUser = asyncHandler(async (req, res) => {
     //req body ->data
     //username or email 
@@ -152,6 +153,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 })
 
+// successfully  working condition
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
@@ -177,8 +179,9 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new apiResponse(200, {} ,"User Logged Out"))
 })
 
+// successfully  working condition
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if (!incomingRefreshToken) {
         throw new apiError(401, "Unauthorized request")
@@ -224,6 +227,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 });
 
+// successfully  working condition
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
     
@@ -243,6 +247,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         .json(new apiResponse(200, {}, "password change successfully"))
 });
 
+// successfully working condition
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
@@ -250,6 +255,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 });
 
+// successfully working condition
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullname, email } = req.body
     
@@ -275,6 +281,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         .json(new apiResponse(200, user, "Account details update successfully"))
 });
 
+// successfully working condition
 const updateUserAvatar = asyncHandler(async (req, res) => {
     
     const avatarLocalPath = req.file?.path
@@ -282,7 +289,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new apiError(400, "Avatar not found")
     }
 
-    const avatar = uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
     if (!avatar.url) {
         throw new apiError(400, "Avatar upload failed")
     }
@@ -303,13 +310,14 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 });
 
+// successfully working condition
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
   if (!coverImageLocalPath) {
     throw new apiError(400, "cover image not found");
   }
 
-  const coverImage = uploadOnCloudinary(coverImageLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
   if (!coverImage.url) {
     throw new apiError(400, "Cover Image upload failed");
   }
@@ -328,6 +336,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new apiResponse(200,user,"cover Image upload successfully"))
 });
 
+// successfully working condition
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params
     
@@ -336,58 +345,56 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     }
 
     const channel = await User.aggregate([
-        {
-            $match: {
-                username: username?.toLowerCase(),
-            },
+      {
+        $match: {
+          username: username?.toLowerCase(),
         },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "channel",
-                as: "subscribers",
-            },
+      },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "_id",
+          foreignField: "channel",
+          as: "subscribers",
         },
-        {
-            $lookup: {
-                from: "subscriptions",
-                localField: "_id",
-                foreignField: "subscriber",
-                as: "subscribedTo",
-            },
+      },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "_id",
+          foreignField: "subscriber",
+          as: "subscribedTo",
         },
-        {
-            $addFields: {
-                subscribersCount: {
-                    $size: "$subscribers",
-                },
-                channelSubscribedToCount: {
-                    $size: "subscribedTo",
-                },
-                isSubscribed: {
-                    $cond: {
-                        if: { $in: [req.user?._id, "subscribers.subscriber"] },
-                        then: true,
-                        else: false
-                
-                    },
-                },
+      },
+      {
+        $addFields: {
+          subscribersCount: {
+            $size: "$subscribers",
+          },
+          channelSubscribedToCount: {
+            $size: "$subscribedTo",
+          },
+          isSubscribed: {
+            $cond: {
+              if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+              then: true,
+              else: false,
             },
+          },
         },
-        {
-            $project: {
-                fullname: 1,
-                username: 1,
-                subscribersCount: 1,
-                channelSubscribedToCount: 1,
-                isSubscribed: 1,
-                email: 1,
-                avatar: 1,
-                coverImage: 1
-
-            }
-        }
+      },
+      {
+        $project: {
+          fullname: 1,
+          username: 1,
+          subscribersCount: 1,
+          channelSubscribedToCount: 1,
+          isSubscribed: 1,
+          email: 1,
+          avatar: 1,
+          coverImage: 1,
+        },
+      },
     ]);
 
     if (!channel?.length) {
@@ -401,6 +408,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         )
 });
 
+// successfully working condition
 const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
       {
@@ -451,7 +459,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             new apiResponse(200,user[0].watchHistory, "Watch History fetch successfully..")
         )
 })
-
 
 
 
